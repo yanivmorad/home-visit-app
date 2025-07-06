@@ -1,68 +1,144 @@
 // src/hooks/useDistance.js
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
+import pLimit from "p-limit";
 
-export function useDistanceTo(address) {
-  const [distance, setDistance] = useState(null);
-  const [loading, setLoading] = useState(true);
+// הגבלת קריאות API ל-5 במקביל
+const limit = pLimit(5);
+// מטמון לתוצאות גיאוקוד
+const cache = new Map();
+
+/**
+ * חישוב מרחק Haversine בין שתי נקודות
+ * @param {Object} coord1 - { lat, lon }
+ * @param {Object} coord2 - { lat, lon }
+ * @returns {number} - מרחק בק"מ, מעוגל לעשירית
+ */
+function haversineDistance(coord1, coord2) {
+  const toRad = (d) => (d * Math.PI) / 180;
+  const R = 6371;
+  const dLat = toRad(coord2.lat - coord1.lat);
+  const dLon = toRad(coord2.lon - coord1.lon);
+  const a =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos(toRad(coord1.lat)) *
+      Math.cos(toRad(coord2.lat)) *
+      Math.sin(dLon / 2) ** 2;
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  return parseFloat((R * c).toFixed(1));
+}
+
+/**
+ * גיאוקוד כתובת עם fallback ורמת דיוק גבוהה
+ * @param {string} address
+ * @param {AbortSignal} signal
+ * @returns {Promise<Object|null>} - { lat, lon } או null
+ */
+async function geocodeAddress(address, signal) {
+  if (cache.has(address)) return cache.get(address);
+  const variants = [
+    address,
+    address.replace(/\d+/, "").trim(),
+    address.split(" ").slice(-1)[0],
+  ];
+  for (const addr of variants) {
+    try {
+      const res = await fetch(
+        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(
+          addr
+        )}`,
+        {
+          signal,
+          headers: { "User-Agent": "MyApp/1.0 (your-email@example.com)" },
+        }
+      );
+      if (!res.ok) continue;
+      const data = await res.json();
+      if (data.length) {
+        const coords = { lat: +data[0].lat, lon: +data[0].lon };
+        cache.set(address, coords);
+        return coords;
+      }
+    } catch (e) {
+      if (e.name === "AbortError") throw e;
+      console.warn(`Geocode failed for '${addr}':`, e.message);
+    }
+  }
+  return null;
+}
+
+/**
+ * חישוב מרחק מכתובת למיקום
+ * @param {string} address
+ * @param {Object} currentCoords - { lat, lon }
+ * @param {AbortSignal} signal
+ * @returns {Promise<number|null>}
+ */
+async function geocodeAndCalc(address, currentCoords, signal) {
+  const target = await geocodeAddress(address, signal);
+  if (!target) return null;
+  return haversineDistance(currentCoords, target);
+}
+
+/**
+ * Hook לחישוב מרחק מדויק יותר
+ * @param {string} address
+ * @param {Object} currentCoords - { lat, lon }
+ * @param {Object} [opts]
+ * @param {boolean} opts.highAccuracy - להשתמש ב-GPS מדויק
+ * @returns {{ distanceKm: number|null, loading: boolean, error: Error|null }}
+ */
+export function useDistanceTo(address, currentCoords, opts = {}) {
+  const { highAccuracy = true } = opts;
+  const [distanceKm, setDistanceKm] = useState(null);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const abortCtrl = useRef(null);
 
   useEffect(() => {
-    if (!address || !navigator.geolocation) {
+    if (!address || !currentCoords) {
+      setDistanceKm(null);
       setLoading(false);
       return;
     }
-
+    abortCtrl.current?.abort();
+    const controller = new AbortController();
+    abortCtrl.current = controller;
     let cancelled = false;
 
-    navigator.geolocation.getCurrentPosition(
-      async ({ coords }) => {
-        try {
-          // 1. Geocode הכתובת (OpenStreetMap Nominatim)
-          const geoRes = await fetch(
-            `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(
-              address
-            )}`
+    (async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        // אופציונלי: בקשת מיקום מדויק יותר
+        if (highAccuracy && navigator.geolocation) {
+          await new Promise((res, rej) =>
+            navigator.geolocation.getCurrentPosition(
+              (pos) => {
+                currentCoords.lat = pos.coords.latitude;
+                currentCoords.lon = pos.coords.longitude;
+                res();
+              },
+              rej,
+              { enableHighAccuracy: true, timeout: 10000 }
+            )
           );
-          if (!geoRes.ok) throw new Error("Geocode failed");
-          const geoData = await geoRes.json();
-          if (!geoData.length) throw new Error("No geocode results");
-
-          const { lat: latStr, lon: lonStr } = geoData[0];
-          const lat = parseFloat(latStr);
-          const lon = parseFloat(lonStr);
-
-          // 2. חישוב Haversine
-          const toRad = (v) => (v * Math.PI) / 180;
-          const R = 6371; // km
-          const dLat = toRad(lat - coords.latitude);
-          const dLon = toRad(lon - coords.longitude);
-          const a =
-            Math.sin(dLat / 2) ** 2 +
-            Math.cos(toRad(coords.latitude)) *
-              Math.cos(toRad(lat)) *
-              Math.sin(dLon / 2) ** 2;
-          const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-          const dist = (R * c).toFixed(1);
-
-          if (!cancelled) setDistance(dist);
-        } catch (err) {
-          if (!cancelled) setError(err);
-        } finally {
-          if (!cancelled) setLoading(false);
         }
-      },
-      (err) => {
-        if (!cancelled) {
-          setError(err);
-          setLoading(false);
-        }
+        const dist = await limit(() =>
+          geocodeAndCalc(address, currentCoords, controller.signal)
+        );
+        if (!cancelled) setDistanceKm(dist);
+      } catch (e) {
+        if (!cancelled) setError(e instanceof Error ? e : new Error(e));
+      } finally {
+        if (!cancelled) setLoading(false);
       }
-    );
+    })();
 
     return () => {
       cancelled = true;
+      controller.abort();
     };
-  }, [address]);
+  }, [address, currentCoords, highAccuracy]);
 
-  return { distance, loading, error };
+  return { distanceKm, loading, error };
 }

@@ -1,3 +1,5 @@
+// src/scr/hooks/useChildren.js
+
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   fetchChildren,
@@ -22,6 +24,8 @@ export function useChild(id) {
     queryKey: ["child", id],
     queryFn: () => fetchChild(id),
     enabled: Boolean(id),
+    staleTime: 5 * 60 * 1000, // נניח שחמש דקות מספיקות
+    refetchOnWindowFocus: false,
   });
 }
 
@@ -60,9 +64,10 @@ export function usePatchChild() {
 export function useDeleteChild() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: deleteChild,
-    onSuccess: () => {
+    mutationFn: ({ id }) => deleteChild(id),
+    onSuccess: (_res, vars) => {
       qc.invalidateQueries({ queryKey: ["children"] });
+      qc.invalidateQueries({ queryKey: ["child", vars.id] });
     },
   });
 }

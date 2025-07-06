@@ -1,3 +1,5 @@
+// src/hooks/useMeetings.js
+
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   fetchMeetingsByChild,
@@ -9,8 +11,16 @@ import {
 export function useMeetings(childId) {
   return useQuery({
     queryKey: ["meetings", childId],
-    queryFn: () => fetchMeetingsByChild(childId),
+    queryFn: () =>
+      fetchMeetingsByChild(childId).then((res) => {
+        console.log("raw meetings response:", res); // לוג לתגובה המלאה
+        return res;
+      }),
     enabled: Boolean(childId),
+    select: (res) => {
+      if (!res.success) throw new Error("Fetch meetings failed");
+      return res.meetings;
+    },
   });
 }
 

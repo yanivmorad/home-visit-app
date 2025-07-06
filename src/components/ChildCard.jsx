@@ -1,42 +1,53 @@
 // src/components/ChildCard.jsx
-import React, { useState, useEffect } from "react";
+import React, { useMemo } from "react";
 import { Link } from "react-router-dom";
+import { useDistanceTo } from "../hooks/useDistance";
 
-export default function ChildCard({ child }) {
-  const [userPos, setUserPos] = useState(null);
-  const [distance, setDistance] = useState(null);
+export default React.memo(function ChildCard({ child, currentPos }) {
+  // 1. חיבור address + city לכתובת מלאה
+  const fullAddress = useMemo(
+    () => `${child.address}, ${child.city}`,
+    [child.address, child.city]
+  );
 
-  useEffect(() => {
-    if (!navigator.geolocation) return;
-    navigator.geolocation.getCurrentPosition(
-      ({ coords }) =>
-        setUserPos({ lat: coords.latitude, lng: coords.longitude }),
-      () => {}
-    );
-  }, []);
+  // 2. שימוש ב-hook לחישוב מרחק
+  const { distanceKm, loading, error } = useDistanceTo(fullAddress, currentPos);
 
-  useEffect(() => {
-    if (!userPos || child.lat == null || child.lng == null) return;
-    const toRad = (v) => (v * Math.PI) / 180;
-    const R = 6371;
-    const dLat = toRad(child.lat - userPos.lat);
-    const dLon = toRad(child.lng - userPos.lng);
-    const a =
-      Math.sin(dLat / 2) ** 2 +
-      Math.cos(toRad(userPos.lat)) *
-        Math.cos(toRad(child.lat)) *
-        Math.sin(dLon / 2) ** 2;
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-    setDistance((R * c).toFixed(1));
-  }, [userPos, child.lat, child.lng]);
+  // 3. המרת תאריך מפורמט ISO ללוקלי בעברית
+  const formatDate = (iso) => {
+    if (!iso) return null;
+    const d = new Date(iso);
+    return d.toLocaleDateString("he-IL", {
+      day: "numeric",
+      month: "long",
+      year: "numeric",
+    });
+  };
+  const formattedLastVisit = useMemo(
+    () => formatDate(child.lastVisit),
+    [child.lastVisit]
+  );
+
+  // 4. תגית דחיפות
+  const getUrgencyTag = (status) => {
+    switch (status) {
+      case "Urgent":
+        return { text: "דחוף", className: "bg-red-100 text-red-700" };
+      case "Medium":
+        return { text: "חשוב", className: "bg-yellow-100 text-yellow-700" };
+      default:
+        return { text: "רגיל", className: "bg-green-100 text-green-700" };
+    }
+  };
+  const { text: tagText, className: tagClass } = getUrgencyTag(child.status);
 
   return (
     <Link
       to={`/child/${child.id}`}
       dir="rtl"
       className="
-        block bg-white rounded-lg shadow p-4 
-        hover:scale-105 hover:shadow-md transition 
+        block bg-white rounded-lg shadow p-4
+        hover:scale-105 hover:shadow-md transition
         text-right
       "
     >
@@ -46,33 +57,37 @@ export default function ChildCard({ child }) {
             {child.name}
           </h2>
 
-          {/* מרחק אם חושב */}
-          {!distance && (
-            <p className="text-neutral-400 text-xs mt-1">מרחק לא זמין</p>
-          )}
-          {distance && (
+          {/* טיפול במרחק */}
+          {loading ? (
+            <p className="text-neutral-400 text-xs mt-1">טוען מרחק…</p>
+          ) : error ? (
+            <p className="text-red-500 text-xs mt-1">מרחק לא זמין</p>
+          ) : distanceKm != null ? (
             <p className="text-neutral-500 text-sm mt-1">
-              מרחק: {distance} ק״מ
+              מרחק: {distanceKm} ק״מ
             </p>
-          )}
+          ) : null}
 
-          {/* עיר */}
           {child.city && (
             <p className="text-neutral-500 text-sm">עיר: {child.city}</p>
           )}
 
-          {/* פגישה אחרונה */}
-          {child.lastVisit && (
+          {formattedLastVisit && (
             <p className="text-neutral-400 text-xs mt-1">
-              פגישה אחרונה: {child.lastVisit}
+              פגישה אחרונה: {formattedLastVisit}
             </p>
           )}
         </div>
 
-        {child.urgent && (
-          <span className="text-red-600 font-bold self-start">דחוף!</span>
-        )}
+        <span
+          className={`
+            px-2 py-1 rounded text-xs font-bold
+            ${tagClass}
+          `}
+        >
+          {tagText}
+        </span>
       </div>
     </Link>
   );
-}
+});
