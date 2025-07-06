@@ -5,33 +5,28 @@ import { useChildren } from "../hooks/useChildren";
 import { useCurrentPosition } from "../hooks/useCurrentPosition";
 
 export default function HomePage() {
-  // 1. Fetch children
   const { data: children = [], isLoading, error } = useChildren();
 
-  // 2. Get user position once
-  const { pos, error: geoError } = useCurrentPosition();
+  // משתמשים עכשיו גם ב-loading, לא רק ב־pos ו־error
+  const { pos, loading: geoLoading, error: geoError } = useCurrentPosition();
 
-  // 3. Local state for filters
   const [nameTerm, setNameTerm] = useState("");
   const [cityTerm, setCityTerm] = useState("");
   const [areaFilter, setAreaFilter] = useState("all");
 
-  // 4. Compute unique areas for select
   const areas = useMemo(() => {
     const setA = new Set(children.map((c) => c.area).filter(Boolean));
     return ["all", ...Array.from(setA)];
   }, [children]);
 
-  // 5. Save areas to localStorage
   useEffect(() => {
     try {
       localStorage.setItem("areas", JSON.stringify(areas));
-    } catch (e) {
-      console.warn("לא הצליח לשמור את האזורים ל-localStorage", e);
+    } catch {
+      console.warn("לא הצליח לשמור את האזורים ל-localStorage");
     }
   }, [areas]);
 
-  // 6. Filter children by name, city, area
   const filtered = useMemo(() => {
     return children.filter((c) => {
       if (
@@ -53,23 +48,36 @@ export default function HomePage() {
     });
   }, [children, nameTerm, cityTerm, areaFilter]);
 
-  // 7. Determine displayed list: if no filter applied, show first 15, otherwise full filtered
   const displayedChildren = useMemo(() => {
     const isFiltered = nameTerm || cityTerm || areaFilter !== "all";
-    if (isFiltered) return filtered;
-    return filtered.slice(0, 15);
+    return isFiltered ? filtered : filtered.slice(0, 15);
   }, [filtered, nameTerm, cityTerm, areaFilter]);
 
-  // 8. Loading / error handling
-  if (isLoading) return <p>טוען ילדים…</p>;
-  if (error)
-    return <p className="text-red-500 text-center">שגיאה בטעינת ילדים</p>;
-  if (geoError)
-    return <p className="text-red-500 text-center">{geoError.message}</p>;
-  if (!pos) return <p className="text-neutral-400 text-center">טוען מיקום…</p>;
+  // 1. טעינת ילדים
+  if (isLoading) {
+    return <p>טוען ילדים…</p>;
+  }
+
+  // 2. שגיאה ב־API של ילדים
+  if (error) {
+    return (
+      <p className="text-red-500 text-center">
+        שגיאה בטעינת ילדים: {error.message}
+      </p>
+    );
+  }
 
   return (
     <div dir="rtl" className="space-y-6">
+      {/* הודעות על גיאולוקיישן */}
+      {(geoLoading || geoError) && (
+        <p className="text-yellow-600 text-center text-sm">
+          {geoLoading
+            ? "טוען מיקום… מרחקים לא יופיעו בינתיים"
+            : `לא ניתן לקבל מיקום: ${geoError.message}. מרחק לא יוצג`}
+        </p>
+      )}
+
       {/* Search & filter bar */}
       <div className="flex flex-col sm:flex-row gap-4">
         <input
@@ -102,7 +110,11 @@ export default function HomePage() {
       {/* Children Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
         {displayedChildren.map((child) => (
-          <ChildCard key={child.id} child={child} currentPos={pos} />
+          <ChildCard
+            key={child.id}
+            child={child}
+            currentPos={pos} // pos עשוי להיות null
+          />
         ))}
       </div>
 

@@ -40,7 +40,6 @@ export default function EditChild() {
     setCity(child.city || "");
     setAddress(child.address || "");
 
-    // choose existing or custom
     if (parsedAreas.includes(child.area)) {
       setSelectedArea(child.area);
       setCustomArea("");
@@ -56,12 +55,23 @@ export default function EditChild() {
     );
   }, [child, parsedAreas]);
 
-  // phone handlers
-  const handlePhoneChange = (idx, field, value) => {
+  // format phone: add dash after 3 digits
+  const formatPhone = (value = "") => {
+    const digits = value.replace(/\D/g, "");
+    if (digits.length <= 3) return digits;
+    return `${digits.slice(0, 3)}-${digits.slice(3, 10)}`;
+  };
+
+  const handlePhoneChange = (idx, field, rawValue) => {
     setPhoneNumbers((prev) =>
-      prev.map((p, i) => (i === idx ? { ...p, [field]: value } : p))
+      prev.map((p, i) => {
+        if (i !== idx) return p;
+        const newVal = field === "number" ? formatPhone(rawValue) : rawValue;
+        return { ...p, [field]: newVal };
+      })
     );
   };
+
   const addPhoneField = () =>
     setPhoneNumbers((prev) => [...prev, { label: "", number: "" }]);
   const removePhoneField = (idx) =>
@@ -70,17 +80,22 @@ export default function EditChild() {
   // submit
   const handleSubmit = (e) => {
     e.preventDefault();
-
     const validPhones = phoneNumbers.filter((p) => p.number.trim());
-    if (!name.trim() || !city.trim() || validPhones.length === 0) {
-      alert("שם, עיר ומספר טלפון אחד לפחות הם שדות חובה.");
+    if (
+      !name.trim() ||
+      !city.trim() ||
+      !birthDate ||
+      validPhones.length === 0 ||
+      validPhones.some((p) => !p.label.trim())
+    ) {
+      alert("שם, עיר, תאריך לידה, איש קשר ומספר טלפון הם שדות חובה.");
       return;
     }
 
     const areaValue =
       selectedArea === "custom" ? customArea.trim() : selectedArea.trim();
     if (!areaValue) {
-      alert("אנא בחר או הזן אזור.");
+      alert("אנא הזן או בחר אזור.");
       return;
     }
 
@@ -158,6 +173,7 @@ export default function EditChild() {
             value={birthDate}
             onChange={(e) => setBirthDate(e.target.value)}
             className="border rounded p-2 w-full"
+            required
           />
         </div>
 
@@ -217,6 +233,7 @@ export default function EditChild() {
                   handlePhoneChange(idx, "label", e.target.value)
                 }
                 className="border rounded p-2 flex-1"
+                required={idx === 0}
               />
               <input
                 type="tel"
@@ -227,6 +244,7 @@ export default function EditChild() {
                 }
                 className="border rounded p-2 flex-1"
                 required={idx === 0}
+                maxLength={12}
               />
               {phoneNumbers.length > 1 && (
                 <button
