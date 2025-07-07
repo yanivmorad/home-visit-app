@@ -39,6 +39,7 @@ export default React.memo(function ChildCard({ child }) {
         };
     }
   };
+  console.log(child);
 
   const { text: tagText, bg, border, text } = getUrgencyTag(child.status);
   const getShadowColor = (status) => {

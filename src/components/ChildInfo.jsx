@@ -70,9 +70,17 @@ export default function ChildInfo({ child, onDelete }) {
       >
         {/* מידע אישי */}
         <div className="flex-1 space-y-2">
-          <h2 className="text-2xl font-semibold text--700">
+          {/* שם וגיל */}
+          <h2 className="text-2xl font-semibold text-gray-700">
             {child.name} {age != null && `, גיל ${age}`}
           </h2>
+
+          {/* סטטוס/קטגוריה */}
+          <p className="inline-block bg-blue-100 text-blue-800 text-xs font-medium px-2 py-1 rounded">
+            {child.category}
+          </p>
+
+          {/* כתובת עם אייקון */}
           <div className="flex items-center text-gray-600">
             <svg
               aria-hidden="true"
