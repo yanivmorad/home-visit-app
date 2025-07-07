@@ -20,6 +20,12 @@ export default function EditChild() {
     }
   }, []);
 
+  // fixed list of categories
+  const categoryOptions = useMemo(
+    () => ["אומנה", "אימוץ", "פנימיה", "מרכז חירום", "צו ביניים", "ניזקקות"],
+    []
+  );
+
   // form state
   const [name, setName] = useState("");
   const [birthDate, setBirthDate] = useState("");
@@ -28,6 +34,8 @@ export default function EditChild() {
   const [customArea, setCustomArea] = useState("");
   const [city, setCity] = useState("");
   const [address, setAddress] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState("");
+  const [customCategory, setCustomCategory] = useState("");
   const [phoneNumbers, setPhoneNumbers] = useState([{ label: "", number: "" }]);
 
   // seed form when child loads
@@ -40,6 +48,7 @@ export default function EditChild() {
     setCity(child.city || "");
     setAddress(child.address || "");
 
+    // area
     if (parsedAreas.includes(child.area)) {
       setSelectedArea(child.area);
       setCustomArea("");
@@ -48,12 +57,21 @@ export default function EditChild() {
       setCustomArea(child.area || "");
     }
 
+    // category
+    if (categoryOptions.includes(child.category)) {
+      setSelectedCategory(child.category);
+      setCustomCategory("");
+    } else {
+      setSelectedCategory("custom");
+      setCustomCategory(child.category || "");
+    }
+
     setPhoneNumbers(
       child.phoneNumbers?.length
         ? child.phoneNumbers.map((p) => ({ label: p.label, number: p.number }))
         : [{ label: "", number: "" }]
     );
-  }, [child, parsedAreas]);
+  }, [child, parsedAreas, categoryOptions]);
 
   // format phone: add dash after 3 digits
   const formatPhone = (value = "") => {
@@ -80,6 +98,7 @@ export default function EditChild() {
   // submit
   const handleSubmit = (e) => {
     e.preventDefault();
+
     const validPhones = phoneNumbers.filter((p) => p.number.trim());
     if (
       !name.trim() ||
@@ -92,10 +111,21 @@ export default function EditChild() {
       return;
     }
 
+    // area validation
     const areaValue =
       selectedArea === "custom" ? customArea.trim() : selectedArea.trim();
     if (!areaValue) {
       alert("אנא הזן או בחר אזור.");
+      return;
+    }
+
+    // category validation
+    const categoryValue =
+      selectedCategory === "custom"
+        ? customCategory.trim()
+        : selectedCategory.trim();
+    if (!categoryValue) {
+      alert("אנא הזן או בחר קטגוריה.");
       return;
     }
 
@@ -109,10 +139,13 @@ export default function EditChild() {
           area: areaValue,
           city: city.trim(),
           address: address.trim(),
+          category: categoryValue,
           phoneNumbers: validPhones,
         },
       },
-      { onSuccess: () => navigate(`/child/${id}`) }
+      {
+        onSuccess: () => navigate(`/child/${id}`),
+      }
     );
   };
 
@@ -148,7 +181,6 @@ export default function EditChild() {
             value={city}
             onChange={(e) => setCity(e.target.value)}
             className="border rounded p-2 w-full"
-            required
           />
         </div>
 
@@ -173,7 +205,6 @@ export default function EditChild() {
             value={birthDate}
             onChange={(e) => setBirthDate(e.target.value)}
             className="border rounded p-2 w-full"
-            required
           />
         </div>
 
@@ -190,14 +221,13 @@ export default function EditChild() {
           />
         </div>
 
-        {/* אזור: תמיד דורש ערך, אופציה ראשונה = הוסף חדש */}
+        {/* אזור */}
         <div>
           <label className="block text-sm text-neutral-700 mb-1">אזור</label>
           <select
             value={selectedArea}
             onChange={(e) => setSelectedArea(e.target.value)}
             className="border rounded p-2 w-full"
-            required
           >
             <option value="custom">הוסף אזור חדש...</option>
             {parsedAreas.map((area, idx) => (
@@ -213,27 +243,54 @@ export default function EditChild() {
               onChange={(e) => setCustomArea(e.target.value)}
               placeholder="הזן שם אזור חדש"
               className="border rounded p-2 w-full mt-2"
-              required
             />
           )}
         </div>
 
-        {/* מספרי טלפון */}
-        <div className="space-y-2">
+        {/* קטגוריה */}
+        <div>
+          <label className="block text-sm text-neutral-700 mb-1">סטטוס</label>
+          <select
+            value={selectedCategory}
+            onChange={(e) => setSelectedCategory(e.target.value)}
+            className="border rounded p-2 w-full"
+          >
+            <option value="custom">הוסף סטטוס חדש...</option>
+            {categoryOptions.map((cat, idx) => (
+              <option key={idx} value={cat}>
+                {cat}
+              </option>
+            ))}
+          </select>
+          {selectedCategory === "custom" && (
+            <input
+              type="text"
+              value={customCategory}
+              onChange={(e) => setCustomCategory(e.target.value)}
+              placeholder="הזן סטטוס חדש"
+              className="border rounded p-2 w-full mt-2"
+            />
+          )}
+        </div>
+
+        <div className="space-y-4">
           <span className="block text-sm text-neutral-700 mb-1">
             מספרי טלפון (לפחות אחד חובה)
           </span>
+
           {phoneNumbers.map((p, idx) => (
-            <div key={idx} className="flex gap-2 items-center">
+            <div
+              key={idx}
+              className="grid grid-cols-1 sm:grid-cols-3 gap-2 items-center"
+            >
               <input
                 type="text"
-                placeholder="תווית (אמא, אבא…)"
+                placeholder="איש קשר (אמא, אבא…)"
                 value={p.label}
                 onChange={(e) =>
                   handlePhoneChange(idx, "label", e.target.value)
                 }
-                className="border rounded p-2 flex-1"
-                required={idx === 0}
+                className="border rounded p-2 w-full"
               />
               <input
                 type="tel"
@@ -242,21 +299,22 @@ export default function EditChild() {
                 onChange={(e) =>
                   handlePhoneChange(idx, "number", e.target.value)
                 }
-                className="border rounded p-2 flex-1"
-                required={idx === 0}
+                className="border rounded p-2 w-full"
+                required
                 maxLength={12}
               />
               {phoneNumbers.length > 1 && (
                 <button
                   type="button"
                   onClick={() => removePhoneField(idx)}
-                  className="text-red-500 hover:underline"
+                  className="text-red-500 text-sm self-start sm:self-auto"
                 >
                   הסר
                 </button>
               )}
             </div>
           ))}
+
           <button
             type="button"
             onClick={addPhoneField}

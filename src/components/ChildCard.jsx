@@ -1,19 +1,7 @@
-// src/components/ChildCard.jsx
 import React, { useMemo } from "react";
 import { Link } from "react-router-dom";
-import { useDistanceTo } from "../hooks/useDistance";
 
-export default React.memo(function ChildCard({ child, currentPos }) {
-  // 1. חיבור address + city לכתובת מלאה
-  const fullAddress = useMemo(
-    () => `${child.address}, ${child.city}`,
-    [child.address, child.city]
-  );
-
-  // 2. שימוש ב-hook לחישוב מרחק
-  const { distanceKm, loading, error } = useDistanceTo(fullAddress, currentPos);
-
-  // 3. המרת תאריך מפורמט ISO ללוקלי בעברית
+export default React.memo(function ChildCard({ child }) {
   const formatDate = (iso) => {
     if (!iso) return null;
     const d = new Date(iso);
@@ -23,66 +11,87 @@ export default React.memo(function ChildCard({ child, currentPos }) {
       year: "numeric",
     });
   };
+
   const formattedLastVisit = useMemo(
     () => formatDate(child.lastVisit),
     [child.lastVisit]
   );
 
-  // 4. תגית דחיפות
   const getUrgencyTag = (status) => {
     switch (status) {
       case "Urgent":
-        return { text: "דחוף", className: "bg-red-100 text-red-700" };
+        return {
+          text: "דחוף",
+          bg: "from-red-100 to-red-200",
+          border: "border-red-300",
+        };
       case "Medium":
-        return { text: "חשוב", className: "bg-yellow-100 text-yellow-700" };
+        return {
+          text: "חשוב",
+          bg: "from-yellow-100 to-yellow-200",
+          border: "border-yellow-300",
+        };
       default:
-        return { text: "רגיל", className: "bg-green-100 text-green-700" };
+        return {
+          text: "רגיל",
+          bg: "from-green-100 to-green-200",
+          border: "border-green-300",
+        };
     }
   };
-  const { text: tagText, className: tagClass } = getUrgencyTag(child.status);
+
+  const { text: tagText, bg, border, text } = getUrgencyTag(child.status);
+  const getShadowColor = (status) => {
+    switch (status) {
+      case "Urgent":
+        return "shadow-[0_4px_12px_rgba(248,113,113,0.25)]"; // אדום רך
+      case "Medium":
+        return "shadow-[0_4px_12px_rgba(251,191,36,0.25)]"; // צהוב רך
+      default:
+        return "shadow-[0_4px_12px_rgba(74,222,128,0.25)]"; // ירוק רך
+    }
+  };
+
+  const shadowClass = getShadowColor(child.status);
 
   return (
     <Link
       to={`/child/${child.id}`}
       dir="rtl"
-      className="
-        block bg-white rounded-lg shadow p-4
-        hover:scale-105 hover:shadow-md transition
-        text-right
-      "
+      className={`block bg-white rounded-lg ring-1 ring-gray-200
+    transition-all duration-200 overflow-hidden text-right
+    ${shadowClass}
+    hover:shadow-lg hover:ring-2 hover:ring-primary-300`}
     >
-      <div className="flex justify-between items-start">
+      <div className="p-5 flex justify-between items-start">
         <div>
           <h2 className="text-xl font-semibold text-primary-600">
             {child.name}
           </h2>
 
-          {/* טיפול במרחק */}
-          {loading ? (
-            <p className="text-neutral-400 text-xs mt-1">טוען מרחק…</p>
-          ) : error ? (
-            <p className="text-red-500 text-xs mt-1">מרחק לא זמין</p>
-          ) : distanceKm != null ? (
-            <p className="text-neutral-500 text-sm mt-1">
-              מרחק: {distanceKm} ק״מ
+          {formattedLastVisit && (
+            <p className="mt-2 text-base font-semibold text-primary-700">
+              פגישה אחרונה: {formattedLastVisit}
             </p>
-          ) : null}
-
-          {child.city && (
-            <p className="text-neutral-500 text-sm">עיר: {child.city}</p>
           )}
 
-          {formattedLastVisit && (
-            <p className="text-neutral-400 text-xs mt-1">
-              פגישה אחרונה: {formattedLastVisit}
+          {child.city && (
+            <p className="mt-1 text-neutral-500 text-s">עיר: {child.city}</p>
+          )}
+
+          {child.category && (
+            <p className="mt-1 text-neutral-500 text-s">
+              סטטוס: {child.category}
             </p>
           )}
         </div>
 
         <span
           className={`
-            px-2 py-1 rounded text-xs font-bold
-            ${tagClass}
+            inline-block px-3 py-1 rounded-full text-xs font-bold
+            bg-gradient-to-r ${bg}
+            border ${border}
+            ${text}
           `}
         >
           {tagText}

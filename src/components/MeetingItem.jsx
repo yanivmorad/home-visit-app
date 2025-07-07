@@ -1,14 +1,16 @@
 // src/components/MeetingItem.jsx
 import React, { useState, useEffect } from "react";
 import { useUpdateMeeting, useDeleteMeeting } from "../hooks/useMeetings";
-
+import { formatDate } from "../hooks/date";
+import { useQueryClient } from "@tanstack/react-query";
 // חיתוך טקסט לסניפט
-const snippet = (text = "", max = 50) =>
+const snippet = (text = "", max = 20) =>
   typeof text === "string" && text.length > max
     ? text.slice(0, max) + "…"
     : text;
 
 export default function MeetingItem({ meeting, childId }) {
+  const queryClient = useQueryClient();
   const updateM = useUpdateMeeting(childId);
   const deleteM = useDeleteMeeting(childId);
 
@@ -19,6 +21,19 @@ export default function MeetingItem({ meeting, childId }) {
   const [date, setDate] = useState(meeting.date);
   const [summary, setSummary] = useState(meeting.summary);
 
+  // לחיתוך לפי שורות
+  const allLines = meeting.summary.split("\n");
+  const CHUNK = 4;
+  const [chunks, setChunks] = useState(1);
+
+  // כשעוברים לעריכה או מתעדכנים props
+  useEffect(() => {
+    setChunks(1);
+  }, [meeting.summary, editMode]);
+
+  // כמה שורות להראות כרגע
+  const visibleLines = allLines.slice(0, chunks * CHUNK);
+  const hasMore = allLines.length > chunks * CHUNK;
   // סנכרון שדות מקומיים עם props שמתעדכנים
   useEffect(() => {
     setDate(meeting.date);
@@ -41,10 +56,16 @@ export default function MeetingItem({ meeting, childId }) {
 
   const onConfirmDelete = () => {
     deleteM.mutate(meeting.id, {
+      onSuccess: () => {
+        // מרעננים את קווריז "meetings" עבור childId הזה
+        queryClient.invalidateQueries(["meetings", childId]);
+
+        // סוגרים מודאל ומקטינים חזרה
+        setShowDeleteConfirm(false);
+        setExpanded(false);
+      },
       onError: (err) => console.error("🔴 deleteMeeting error", err),
     });
-    setShowDeleteConfirm(false);
-    setExpanded(false);
   };
 
   return (
@@ -56,7 +77,7 @@ export default function MeetingItem({ meeting, childId }) {
         onToggle={(e) => setExpanded(e.target.open)}
       >
         <summary className="cursor-pointer font-medium text-right">
-          📅 {date} — {snippet(summary)}
+          📅 {formatDate(date)} — {snippet(summary)}
         </summary>
 
         <div className="mt-2 space-y-2 text-right">
@@ -92,7 +113,25 @@ export default function MeetingItem({ meeting, childId }) {
             </>
           ) : (
             <>
-              <p className="text-neutral-700">{summary}</p>
+              <div
+                className="
+    text-neutral-700
+    leading-relaxed        /* מרווח בין שורות */
+    whitespace-pre-line    /* מפרש '\n' כהפסקת שורה */
+    space-y-2              /* ריווח בין פסקאות */
+  "
+              >
+                {visibleLines.join("\n")}
+              </div>
+              {/* כפתור קרא עוד רק אם יש עוד שורות */}
+              {hasMore && (
+                <button
+                  onClick={() => setChunks((prev) => prev + 1)}
+                  className="mt-2 text-blue-600 hover:underline"
+                >
+                  קרא עוד
+                </button>
+              )}
               <div className="flex justify-end gap-2">
                 <button
                   onClick={() => setEditMode(true)}
@@ -127,7 +166,7 @@ export default function MeetingItem({ meeting, childId }) {
           <div className="bg-white p-6 rounded-lg shadow-lg max-w-sm w-full">
             <h2 className="text-lg font-semibold mb-4">מחיקת פגישה</h2>
             <p className="mb-6">
-              האם אתה בטוח שברצונך למחוק את הפגישה מ־{date}?
+              האם אתה בטוח שברצונך למחוק את הפגישה מ־{formatDate(date)}?
             </p>
             <div className="flex justify-end gap-2">
               <button

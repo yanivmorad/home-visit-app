@@ -1,5 +1,5 @@
 // src/pages/AddChild.jsx
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useCreateChild } from "../hooks/useChildren";
 
@@ -11,14 +11,22 @@ export default function AddChild() {
   const [birthDate, setBirthDate] = useState("");
   const [idNumber, setIdNumber] = useState("");
 
-  // בוחרים בין ערך קיים או חדש
   const [selectedArea, setSelectedArea] = useState("");
   const [customArea, setCustomArea] = useState("");
+
+  const [selectedCategory, setSelectedCategory] = useState("");
+  const [customCategory, setCustomCategory] = useState("");
 
   const [city, setCity] = useState("");
   const [address, setAddress] = useState("");
   const [phoneNumbers, setPhoneNumbers] = useState([{ label: "", number: "" }]);
   const [areas, setAreas] = useState([]);
+
+  // קבועות של קטגוריות
+  const categoryOptions = useMemo(
+    () => ["אומנה", "אימוץ", "פנימיה", "מרכז חירום", "צו ביניים", "ניזקקות"],
+    []
+  );
 
   // טוען את האזורים מ־localStorage
   useEffect(() => {
@@ -62,13 +70,31 @@ export default function AddChild() {
       !city.trim() ||
       !birthDate ||
       !selectedArea ||
+      !selectedCategory ||
       validPhones.length === 0 ||
       validPhones.some((p) => !p.label.trim())
-    )
+    ) {
+      alert(
+        "שם, עיר, תאריך לידה, אזור, קטגוריה, איש קשר ומספר טלפון הם שדות חובה."
+      );
       return;
+    }
 
     const areaValue =
       selectedArea === "custom" ? customArea.trim() : selectedArea.trim();
+    if (!areaValue) {
+      alert("אנא הזן או בחר אזור.");
+      return;
+    }
+
+    const categoryValue =
+      selectedCategory === "custom"
+        ? customCategory.trim()
+        : selectedCategory.trim();
+    if (!categoryValue) {
+      alert("אנא הזן או בחר קטגוריה.");
+      return;
+    }
 
     createChild.mutate(
       {
@@ -76,6 +102,7 @@ export default function AddChild() {
         birthDate,
         idNumber: idNumber.trim(),
         area: areaValue,
+        category: categoryValue,
         city: city.trim(),
         address: address.trim(),
         phoneNumbers: validPhones,
@@ -113,7 +140,6 @@ export default function AddChild() {
             value={city}
             onChange={(e) => setCity(e.target.value)}
             className="border rounded p-2 w-full"
-            required
           />
         </div>
 
@@ -138,7 +164,6 @@ export default function AddChild() {
             value={birthDate}
             onChange={(e) => setBirthDate(e.target.value)}
             className="border rounded p-2 w-full"
-            required
           />
         </div>
 
@@ -162,7 +187,6 @@ export default function AddChild() {
             value={selectedArea}
             onChange={(e) => setSelectedArea(e.target.value)}
             className="border rounded p-2 w-full"
-            required
           >
             <option value="">-- בחר אזור --</option>
             {areas.map((a, idx) => (
@@ -172,7 +196,6 @@ export default function AddChild() {
             ))}
             <option value="custom">אזור חדש...</option>
           </select>
-
           {selectedArea === "custom" && (
             <input
               type="text"
@@ -180,18 +203,47 @@ export default function AddChild() {
               value={customArea}
               onChange={(e) => setCustomArea(e.target.value)}
               className="border rounded p-2 mt-2 w-full"
-              required
             />
           )}
         </div>
 
-        {/* טלפונים דינאמיים */}
-        <div className="space-y-2">
+        {/* קטגוריה */}
+        <div>
+          <label className="block text-sm text-neutral-700 mb-1">סטטוס</label>
+          <select
+            value={selectedCategory}
+            onChange={(e) => setSelectedCategory(e.target.value)}
+            className="border rounded p-2 w-full"
+          >
+            <option value="">-- בחר סטטוס --</option>
+            {categoryOptions.map((cat, idx) => (
+              <option key={idx} value={cat}>
+                {cat}
+              </option>
+            ))}
+            <option value="custom">סטטוס חדש...</option>
+          </select>
+          {selectedCategory === "custom" && (
+            <input
+              type="text"
+              placeholder="הקלדו סטטוס חדש"
+              value={customCategory}
+              onChange={(e) => setCustomCategory(e.target.value)}
+              className="border rounded p-2 mt-2 w-full"
+            />
+          )}
+        </div>
+
+        <div className="space-y-4">
           <span className="block text-sm text-neutral-700 mb-1">
             מספרי טלפון (לפחות אחד חובה)
           </span>
+
           {phoneNumbers.map((p, idx) => (
-            <div key={idx} className="flex gap-2 items-center">
+            <div
+              key={idx}
+              className="grid grid-cols-1 sm:grid-cols-3 gap-2 items-center"
+            >
               <input
                 type="text"
                 placeholder="איש קשר (אמא, אבא…)"
@@ -199,8 +251,7 @@ export default function AddChild() {
                 onChange={(e) =>
                   handlePhoneChange(idx, "label", e.target.value)
                 }
-                className="border rounded p-2 flex-1"
-                required
+                className="border rounded p-2 w-full"
               />
               <input
                 type="tel"
@@ -209,21 +260,21 @@ export default function AddChild() {
                 onChange={(e) =>
                   handlePhoneChange(idx, "number", e.target.value)
                 }
-                className="border rounded p-2 flex-1"
-                required
+                className="border rounded p-2 w-full"
                 maxLength={12}
               />
               {phoneNumbers.length > 1 && (
                 <button
                   type="button"
                   onClick={() => removePhoneField(idx)}
-                  className="text-red-500"
+                  className="text-red-500 text-sm self-start sm:self-auto"
                 >
                   הסר
                 </button>
               )}
             </div>
           ))}
+
           <button
             type="button"
             onClick={addPhoneField}

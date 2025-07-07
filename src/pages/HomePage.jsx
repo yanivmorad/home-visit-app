@@ -2,13 +2,13 @@
 import React, { useState, useMemo, useEffect } from "react";
 import ChildCard from "../components/ChildCard";
 import { useChildren } from "../hooks/useChildren";
-import { useCurrentPosition } from "../hooks/useCurrentPosition";
+// import { useCurrentPosition } from "../hooks/useCurrentPosition";
 
 export default function HomePage() {
   const { data: children = [], isLoading, error } = useChildren();
 
   // משתמשים עכשיו גם ב-loading, לא רק ב־pos ו־error
-  const { pos, loading: geoLoading, error: geoError } = useCurrentPosition();
+  // const { pos, loading: geoLoading, error: geoError } = useCurrentPosition();
 
   const [nameTerm, setNameTerm] = useState("");
   const [cityTerm, setCityTerm] = useState("");
@@ -69,14 +69,14 @@ export default function HomePage() {
 
   return (
     <div dir="rtl" className="space-y-6">
-      {/* הודעות על גיאולוקיישן */}
+      {/* הודעות על גיאולוקיישן
       {(geoLoading || geoError) && (
         <p className="text-yellow-600 text-center text-sm">
           {geoLoading
             ? "טוען מיקום… מרחקים לא יופיעו בינתיים"
             : `לא ניתן לקבל מיקום: ${geoError.message}. מרחק לא יוצג`}
         </p>
-      )}
+      )} */}
 
       {/* Search & filter bar */}
       <div className="flex flex-col sm:flex-row gap-4">
@@ -113,7 +113,7 @@ export default function HomePage() {
           <ChildCard
             key={child.id}
             child={child}
-            currentPos={pos} // pos עשוי להיות null
+            // currentPos={pos} // pos עשוי להיות null
           />
         ))}
       </div>

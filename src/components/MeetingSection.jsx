@@ -2,32 +2,29 @@
 import React, { useState, useEffect } from "react";
 import MeetingItem from "./MeetingItem";
 
-export default function MeetingSection({
-  meetings = [], // ברירת מחדל למערך
-  onAdd,
-}) {
+export default function MeetingSection({ meetings = [], onAdd }) {
+  const ITEMS_STEP = 4;
+  const [visibleCount, setVisibleCount] = useState(ITEMS_STEP);
   const [newDate, setNewDate] = useState("");
   const [newSummary, setNewSummary] = useState("");
-
-  // ודא שמתקבל תמיד מערך
   const list = Array.isArray(meetings) ? meetings : [];
 
-  // לוג ברגע שהפרופס meetings משתנים
+  // ברגע שהרשימה משתנה – מתחילים שוב מ-4 האחרונות
   useEffect(() => {
-    console.log("📦 [MeetingSection] meetings prop:", meetings);
-    console.log("📦 [MeetingSection] normalized list:", list);
-  }, [meetings, list]);
+    setVisibleCount(ITEMS_STEP);
+  }, [meetings]);
 
-  // לוג כשנכנס לפונקציית הוספה
+  // מיון יורד לפי תאריך (החדשות בראש)
+  const sorted = [...list].sort((a, b) => new Date(b.date) - new Date(a.date));
+
+  const visibleMeetings = sorted.slice(0, visibleCount);
+  const hasMore = sorted.length > visibleCount;
+  const canHide = visibleCount > ITEMS_STEP;
+
+  // handleAdd וכו' – כפי שהגדרת כבר
   const handleAdd = () => {
-    console.log("🔍 [MeetingSection] onAdd is", onAdd);
-    console.log("🖱️ [MeetingSection] handleAdd called", {
-      date: newDate,
-      summary: newSummary,
-    });
     if (!newDate || !newSummary) return;
     onAdd({ date: newDate, summary: newSummary });
-    console.log("✅ [MeetingSection] onAdd invoked");
     setNewDate("");
     setNewSummary("");
   };
@@ -36,45 +33,48 @@ export default function MeetingSection({
     <section dir="rtl" className="space-y-4 text-right">
       <div>
         <h3 className="text-xl font-semibold">היסטוריית פגישות</h3>
-        {list.length === 0 ? (
+
+        {visibleMeetings.length === 0 ? (
           <p className="text-neutral-500">אין פגישות להצגה</p>
         ) : (
-          list.map((m) => {
-            console.log("🔹 [MeetingSection] rendering meeting:", m);
-            return <MeetingItem key={m.id} meeting={m} />;
-          })
+          visibleMeetings.map((m) => <MeetingItem key={m.id} meeting={m} />)
         )}
+
+        <div className="mt-2 flex gap-4">
+          {hasMore && (
+            <button
+              onClick={() => setVisibleCount((prev) => prev + ITEMS_STEP)}
+              className="text-blue-600 hover:underline"
+            >
+              ראה עוד פגישות
+            </button>
+          )}
+          {canHide && (
+            <button
+              onClick={() => setVisibleCount(ITEMS_STEP)}
+              className="text-gray-600 hover:underline"
+            >
+              הסתר
+            </button>
+          )}
+        </div>
       </div>
 
+      {/* טופס הוספת פגישה חדשה */}
       <div className="bg-white p-6 rounded shadow space-y-2">
         <h3 className="text-xl font-semibold">הוסף פגישה חדשה</h3>
-
         <input
           type="date"
           className="border rounded p-2 w-full"
           value={newDate}
-          onChange={(e) => {
-            console.log(
-              "🗓️ [MeetingSection] newDate changed to",
-              e.target.value
-            );
-            setNewDate(e.target.value);
-          }}
+          onChange={(e) => setNewDate(e.target.value)}
         />
-
         <textarea
           className="border rounded p-2 w-full"
           placeholder="סיכום הפגישה..."
           value={newSummary}
-          onChange={(e) => {
-            console.log(
-              "✏️ [MeetingSection] newSummary changed to",
-              e.target.value
-            );
-            setNewSummary(e.target.value);
-          }}
+          onChange={(e) => setNewSummary(e.target.value)}
         />
-
         <button
           type="button"
           onClick={handleAdd}
