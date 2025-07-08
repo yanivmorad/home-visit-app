@@ -1,4 +1,3 @@
-// src/pages/EditChild.jsx
 import React, { useState, useEffect, useMemo } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { useChild, useUpdateChild } from "../hooks/useChildren";
@@ -28,7 +27,7 @@ export default function EditChild() {
 
   // form state
   const [name, setName] = useState("");
-  const [birthDate, setBirthDate] = useState("");
+  const [birthDate, setBirthDate] = useState(null);
   const [idNumber, setIdNumber] = useState("");
   const [selectedArea, setSelectedArea] = useState("");
   const [customArea, setCustomArea] = useState("");
@@ -37,13 +36,15 @@ export default function EditChild() {
   const [selectedCategory, setSelectedCategory] = useState("");
   const [customCategory, setCustomCategory] = useState("");
   const [phoneNumbers, setPhoneNumbers] = useState([{ label: "", number: "" }]);
+  // legal representative
+  const [legalRep, setLegalRep] = useState("");
 
   // seed form when child loads
   useEffect(() => {
     if (!child) return;
 
     setName(child.name || "");
-    setBirthDate(child.birthDate || "");
+    setBirthDate(child.birthDate || null);
     setIdNumber(child.idNumber || "");
     setCity(child.city || "");
     setAddress(child.address || "");
@@ -71,6 +72,7 @@ export default function EditChild() {
         ? child.phoneNumbers.map((p) => ({ label: p.label, number: p.number }))
         : [{ label: "", number: "" }]
     );
+    setLegalRep(child.legalRepresentative || "");
   }, [child, parsedAreas, categoryOptions]);
 
   // format phone: add dash after 3 digits
@@ -99,35 +101,18 @@ export default function EditChild() {
   const handleSubmit = (e) => {
     e.preventDefault();
 
-    const validPhones = phoneNumbers.filter((p) => p.number.trim());
-    if (
-      !name.trim() ||
-      !city.trim() ||
-      !birthDate ||
-      validPhones.length === 0 ||
-      validPhones.some((p) => !p.label.trim())
-    ) {
-      alert("שם, עיר, תאריך לידה, איש קשר ומספר טלפון הם שדות חובה.");
+    if (!name.trim() || !legalRep) {
+      alert("שם ומייצג משפטי הם שדות חובה.");
       return;
     }
 
-    // area validation
+    // area and category (can be empty)
     const areaValue =
       selectedArea === "custom" ? customArea.trim() : selectedArea.trim();
-    if (!areaValue) {
-      alert("אנא הזן או בחר אזור.");
-      return;
-    }
-
-    // category validation
     const categoryValue =
       selectedCategory === "custom"
         ? customCategory.trim()
         : selectedCategory.trim();
-    if (!categoryValue) {
-      alert("אנא הזן או בחר קטגוריה.");
-      return;
-    }
 
     updateChild(
       {
@@ -140,7 +125,10 @@ export default function EditChild() {
           city: city.trim(),
           address: address.trim(),
           category: categoryValue,
-          phoneNumbers: validPhones,
+          phoneNumbers: phoneNumbers.filter(
+            (p) => p.label.trim() || p.number.trim()
+          ),
+          legalRepresentative: legalRep,
         },
       },
       {
@@ -161,9 +149,42 @@ export default function EditChild() {
       <h1 className="text-3xl font-bold text-primary-600">ערוך פרטי מטופל</h1>
 
       <form onSubmit={handleSubmit} className="space-y-4">
+        {/* מייצג משפטי */}
+        <div>
+          <label className="block text-sm text-neutral-700 mb-1">
+            מייצג משפטי <span className="text-red-500">*</span>
+          </label>
+          <div className="flex gap-4">
+            <label className="flex items-center gap-1">
+              <input
+                type="radio"
+                name="legalRep"
+                value="שלמה"
+                checked={legalRep === "שלמה"}
+                onChange={(e) => setLegalRep(e.target.value)}
+                required
+              />
+              שלמה
+            </label>
+            <label className="flex items-center gap-1">
+              <input
+                type="radio"
+                name="legalRep"
+                value="שלומית"
+                checked={legalRep === "שלומית"}
+                onChange={(e) => setLegalRep(e.target.value)}
+                required
+              />
+              שלומית
+            </label>
+          </div>
+        </div>
+
         {/* שם */}
         <div>
-          <label className="block text-sm text-neutral-700 mb-1">שם</label>
+          <label className="block text-sm text-neutral-700 mb-1">
+            שם <span className="text-red-500">*</span>
+          </label>
           <input
             type="text"
             value={name}
@@ -275,7 +296,7 @@ export default function EditChild() {
 
         <div className="space-y-4">
           <span className="block text-sm text-neutral-700 mb-1">
-            מספרי טלפון (לפחות אחד חובה)
+            מספרי טלפון (לא חובה)
           </span>
 
           {phoneNumbers.map((p, idx) => (
@@ -300,7 +321,6 @@ export default function EditChild() {
                   handlePhoneChange(idx, "number", e.target.value)
                 }
                 className="border rounded p-2 w-full"
-                required
                 maxLength={12}
               />
               {phoneNumbers.length > 1 && (

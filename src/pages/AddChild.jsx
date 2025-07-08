@@ -1,4 +1,3 @@
-// src/pages/AddChild.jsx
 import React, { useState, useEffect, useMemo } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useCreateChild } from "../hooks/useChildren";
@@ -8,7 +7,7 @@ export default function AddChild() {
   const createChild = useCreateChild();
 
   const [name, setName] = useState("");
-  const [birthDate, setBirthDate] = useState("");
+  const [birthDate, setBirthDate] = useState(null);
   const [idNumber, setIdNumber] = useState("");
 
   const [selectedArea, setSelectedArea] = useState("");
@@ -21,6 +20,9 @@ export default function AddChild() {
   const [address, setAddress] = useState("");
   const [phoneNumbers, setPhoneNumbers] = useState([{ label: "", number: "" }]);
   const [areas, setAreas] = useState([]);
+
+  // חדש: נציג משפטי
+  const [legalRep, setLegalRep] = useState("");
 
   // קבועות של קטגוריות
   const categoryOptions = useMemo(
@@ -64,38 +66,20 @@ export default function AddChild() {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    const validPhones = phoneNumbers.filter((p) => p.number.trim());
-    if (
-      !name.trim() ||
-      !city.trim() ||
-      !birthDate ||
-      !selectedArea ||
-      !selectedCategory ||
-      validPhones.length === 0 ||
-      validPhones.some((p) => !p.label.trim())
-    ) {
-      alert(
-        "שם, עיר, תאריך לידה, אזור, קטגוריה, איש קשר ומספר טלפון הם שדות חובה."
-      );
+    if (!name.trim() || !legalRep) {
+      alert("שם ונציג משפטי הם שדות חובה.");
       return;
     }
 
+    // ערך האזור והקטגוריה (אם נבחרו)
     const areaValue =
       selectedArea === "custom" ? customArea.trim() : selectedArea.trim();
-    if (!areaValue) {
-      alert("אנא הזן או בחר אזור.");
-      return;
-    }
-
     const categoryValue =
       selectedCategory === "custom"
         ? customCategory.trim()
         : selectedCategory.trim();
-    if (!categoryValue) {
-      alert("אנא הזן או בחר קטגוריה.");
-      return;
-    }
 
+    // אפשר להעביר גם אם ריקים
     createChild.mutate(
       {
         name: name.trim(),
@@ -105,7 +89,10 @@ export default function AddChild() {
         category: categoryValue,
         city: city.trim(),
         address: address.trim(),
-        phoneNumbers: validPhones,
+        phoneNumbers: phoneNumbers.filter(
+          (p) => p.label.trim() || p.number.trim()
+        ),
+        legalRepresentative: legalRep,
       },
       { onSuccess: () => navigate("/") }
     );
@@ -120,9 +107,41 @@ export default function AddChild() {
       <h1 className="text-3xl font-bold text-primary-600">הוסף ילד חדש</h1>
 
       <form onSubmit={handleSubmit} className="space-y-4">
+        {/* נציג משפטי */}
+        <div className="flex justify-center">
+          <div className="inline-flex rounded-md overflow-hidden border border-gray-300 bg-white shadow-sm">
+            {[
+              { label: 'עו"ד שלומית', value: "שלומית" },
+              { label: 'עו"ד שלמה', value: "שלמה" },
+            ].map(({ label, value }) => (
+              <label
+                key={value}
+                className={`px-5 py-2.5 text-base font-medium cursor-pointer transition-colors text-center ${
+                  legalRep === value
+                    ? "bg-blue-600 text-white"
+                    : "text-gray-700 hover:bg-gray-100"
+                }`}
+              >
+                <input
+                  type="radio"
+                  name="legalRep"
+                  value={value}
+                  checked={legalRep === value}
+                  onChange={(e) => setLegalRep(e.target.value)}
+                  required
+                  className="sr-only"
+                />
+                {label}
+              </label>
+            ))}
+          </div>
+        </div>
+
         {/* שם */}
         <div>
-          <label className="block text-sm text-neutral-700 mb-1">שם</label>
+          <label className="block text-sm text-neutral-700 mb-1">
+            שם <span className="text-red-500">*</span>
+          </label>
           <input
             type="text"
             value={name}
@@ -236,7 +255,7 @@ export default function AddChild() {
 
         <div className="space-y-4">
           <span className="block text-sm text-neutral-700 mb-1">
-            מספרי טלפון (לפחות אחד חובה)
+            מספרי טלפון (לא חובה)
           </span>
 
           {phoneNumbers.map((p, idx) => (

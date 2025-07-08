@@ -10,10 +10,11 @@ import {
   deleteChild,
 } from "../api/childrenApi";
 
-export function useChildren() {
+export function useChildren(filters = {}) {
   return useQuery({
-    queryKey: ["children"],
-    queryFn: fetchChildren,
+    // כל שינוי בפילטרים יגרום לשליפת נתונים מחדש
+    queryKey: ["children", filters],
+    queryFn: () => fetchChildren(filters),
     staleTime: Infinity,
     refetchOnWindowFocus: false,
   });

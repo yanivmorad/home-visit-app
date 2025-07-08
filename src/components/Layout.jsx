@@ -15,7 +15,7 @@ export default function Layout() {
             to="/"
             className="text-3xl font-bold text-primary-600 hover:underline"
           >
-            HomeVisit
+            פגישות קטינים
           </Link>
 
           {/* כפתור הוספת ילד — עיצוב עדין */}
