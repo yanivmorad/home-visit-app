@@ -2,8 +2,8 @@
 
 // import { clientFetch } from "./client";
 
-const BASE = "http://localhost:4000/api/children";
-// const BASE = "https://home-visit-backend.onrender.com/api/children";
+// const BASE = "http://localhost:4000/api/children";
+const BASE = "https://home-visit-backend.onrender.com/api/children";
 
 export async function fetchChildren() {
   const res = await fetch(BASE);
