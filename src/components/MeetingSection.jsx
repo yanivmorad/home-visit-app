@@ -30,12 +30,14 @@ export default function MeetingSection({ meetings = [], onAdd }) {
   };
 
   return (
-    <section dir="rtl" className="space-y-4 text-right">
+    <section dir="rtl" className="space-y-6 text-right">
       <div>
-        <h3 className="text-xl font-semibold">היסטוריית פגישות</h3>
+        <h3 className="text-xl font-semibold text-[#1F3A93]">
+          היסטוריית פגישות
+        </h3>
 
         {visibleMeetings.length === 0 ? (
-          <p className="text-neutral-500">אין פגישות להצגה</p>
+          <p className="text-gray-400">אין פגישות להצגה</p>
         ) : (
           visibleMeetings.map((m) => <MeetingItem key={m.id} meeting={m} />)
         )}
@@ -44,7 +46,7 @@ export default function MeetingSection({ meetings = [], onAdd }) {
           {hasMore && (
             <button
               onClick={() => setVisibleCount((prev) => prev + ITEMS_STEP)}
-              className="text-blue-600 hover:underline"
+              className="text-[#1F3A93] hover:text-[#162D6F] transition"
             >
               ראה עוד פגישות
             </button>
@@ -52,7 +54,7 @@ export default function MeetingSection({ meetings = [], onAdd }) {
           {canHide && (
             <button
               onClick={() => setVisibleCount(ITEMS_STEP)}
-              className="text-gray-600 hover:underline"
+              className="text-gray-500 hover:text-gray-700 transition"
             >
               הסתר
             </button>
@@ -61,16 +63,16 @@ export default function MeetingSection({ meetings = [], onAdd }) {
       </div>
 
       {/* טופס הוספת פגישה חדשה */}
-      <div className="bg-white p-6 rounded shadow space-y-2">
-        <h3 className="text-xl font-semibold">הוסף פגישה חדשה</h3>
+      <div className="bg-white p-6 rounded-xl shadow-md space-y-3">
+        <h3 className="text-lg font-semibold text-gray-700">הוסף פגישה חדשה</h3>
         <input
           type="date"
-          className="border rounded p-2 w-full"
+          className="border border-gray-300 rounded-md p-2 w-full focus:outline-none focus:ring-2 focus:ring-[#1F3A93] focus:border-[#1F3A93] transition"
           value={newDate}
           onChange={(e) => setNewDate(e.target.value)}
         />
         <textarea
-          className="border rounded p-2 w-full"
+          className="border border-gray-300 rounded-md p-2 w-full focus:outline-none focus:ring-2 focus:ring-[#1F3A93] focus:border-[#1F3A93] transition"
           placeholder="סיכום הפגישה..."
           value={newSummary}
           onChange={(e) => setNewSummary(e.target.value)}
@@ -80,10 +82,10 @@ export default function MeetingSection({ meetings = [], onAdd }) {
           onClick={handleAdd}
           disabled={!newDate || !newSummary}
           className="
-            mt-2 px-4 py-2 rounded text-white transition 
-            bg-blue-600 hover:bg-blue-700 
-            disabled:opacity-50 disabled:cursor-not-allowed
-          "
+          mt-2 px-4 py-2 rounded-md text-white transition 
+          bg-[#1F3A93] hover:bg-[#162D6F] 
+          disabled:opacity-50 disabled:cursor-not-allowed
+        "
         >
           הוסף פגישה
         </button>

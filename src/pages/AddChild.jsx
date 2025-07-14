@@ -1,3 +1,4 @@
+// homeVisit/src/pages/AddChild.jsx
 import React, { useState, useEffect, useMemo } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useCreateChild } from "../hooks/useChildren";
@@ -100,11 +101,14 @@ export default function AddChild() {
 
   return (
     <div dir="rtl" className="max-w-lg mx-auto p-6 space-y-6 text-right">
-      <Link to="/" className="text-primary-600 hover:underline">
+      <Link
+        to="/"
+        className="inline-block text-sm font-medium text-gray-600 border-b border-gray-300 hover:border-blue-600 hover:text-blue-600 transition"
+      >
         ← חזרה
       </Link>
 
-      <h1 className="text-3xl font-bold text-primary-600">הוסף ילד חדש</h1>
+      <h1 className="text-3xl font-bold text-[#1F3A93]">הוסף ילד חדש</h1>
 
       <form onSubmit={handleSubmit} className="space-y-4">
         {/* נציג משפטי */}
@@ -118,7 +122,7 @@ export default function AddChild() {
                 key={value}
                 className={`px-5 py-2.5 text-base font-medium cursor-pointer transition-colors text-center ${
                   legalRep === value
-                    ? "bg-blue-600 text-white"
+                    ? "bg-[#1F3A93] text-white"
                     : "text-gray-700 hover:bg-gray-100"
                 }`}
               >
@@ -137,82 +141,77 @@ export default function AddChild() {
           </div>
         </div>
 
-        {/* שם */}
         <div>
-          <label className="block text-sm text-neutral-700 mb-1">
+          <label className="block text-sm text-gray-700 mb-1">
             שם <span className="text-red-500">*</span>
           </label>
           <input
             type="text"
             value={name}
             onChange={(e) => setName(e.target.value)}
-            className="border rounded p-2 w-full"
+            className="border border-gray-300 rounded-md p-2 w-full focus:outline-none focus:ring-2 focus:ring-[#1F3A93] focus:border-[#1F3A93] transition"
             required
           />
         </div>
 
-        {/* עיר */}
         <div>
-          <label className="block text-sm text-neutral-700 mb-1">עיר</label>
+          <label className="block text-sm text-gray-700 mb-1">עיר</label>
           <input
             type="text"
             value={city}
             onChange={(e) => setCity(e.target.value)}
-            className="border rounded p-2 w-full"
+            className="border border-gray-300 rounded-md p-2 w-full focus:outline-none focus:ring-2 focus:ring-[#1F3A93] focus:border-[#1F3A93] transition"
           />
         </div>
 
-        {/* כתובת */}
         <div>
-          <label className="block text-sm text-neutral-700 mb-1">כתובת</label>
+          <label className="block text-sm text-gray-700 mb-1">כתובת</label>
           <input
             type="text"
             value={address}
             onChange={(e) => setAddress(e.target.value)}
-            className="border rounded p-2 w-full"
+            className="border border-gray-300 rounded-md p-2 w-full focus:outline-none focus:ring-2 focus:ring-[#1F3A93] focus:border-[#1F3A93] transition"
           />
         </div>
 
-        {/* תאריך לידה */}
         <div>
-          <label className="block text-sm text-neutral-700 mb-1">
-            תאריך לידה
-          </label>
+          <label className="block text-sm text-gray-700 mb-1">תאריך לידה</label>
           <input
             type="date"
             value={birthDate}
             onChange={(e) => setBirthDate(e.target.value)}
-            className="border rounded p-2 w-full"
+            className="border border-gray-300 rounded-md p-2 w-full focus:outline-none focus:ring-2 focus:ring-[#1F3A93] focus:border-[#1F3A93] transition"
           />
         </div>
 
-        {/* תעודת זהות */}
         <div>
-          <label className="block text-sm text-neutral-700 mb-1">
+          <label className="block text-sm text-gray-700 mb-1">
             מס׳ תעודת זהות
           </label>
           <input
             type="text"
             value={idNumber}
             onChange={(e) => setIdNumber(e.target.value)}
-            className="border rounded p-2 w-full"
+            className="border border-gray-300 rounded-md p-2 w-full focus:outline-none focus:ring-2 focus:ring-[#1F3A93] focus:border-[#1F3A93] transition"
           />
         </div>
 
-        {/* אזור */}
         <div>
-          <label className="block text-sm text-neutral-700 mb-1">אזור</label>
+          <label className="block text-sm text-gray-700 mb-1">אזור</label>
           <select
             value={selectedArea}
             onChange={(e) => setSelectedArea(e.target.value)}
-            className="border rounded p-2 w-full"
+            className="border border-gray-300 rounded-md p-2 w-full focus:outline-none focus:ring-2 focus:ring-[#1F3A93] focus:border-[#1F3A93] transition"
           >
             <option value="">-- בחר אזור --</option>
-            {areas.map((a, idx) => (
-              <option key={idx} value={a}>
-                {a}
-              </option>
-            ))}
+            {areas
+              .filter((a) => a !== "all")
+              .map((a, idx) => (
+                <option key={idx} value={a}>
+                  {a}
+                </option>
+              ))}
+
             <option value="custom">אזור חדש...</option>
           </select>
           {selectedArea === "custom" && (
@@ -221,18 +220,17 @@ export default function AddChild() {
               placeholder="הקלד אזור חדש"
               value={customArea}
               onChange={(e) => setCustomArea(e.target.value)}
-              className="border rounded p-2 mt-2 w-full"
+              className="border border-gray-300 rounded-md p-2 mt-2 w-full focus:outline-none focus:ring-2 focus:ring-[#1F3A93] focus:border-[#1F3A93] transition"
             />
           )}
         </div>
 
-        {/* קטגוריה */}
         <div>
-          <label className="block text-sm text-neutral-700 mb-1">סטטוס</label>
+          <label className="block text-sm text-gray-700 mb-1">סטטוס</label>
           <select
             value={selectedCategory}
             onChange={(e) => setSelectedCategory(e.target.value)}
-            className="border rounded p-2 w-full"
+            className="border border-gray-300 rounded-md p-2 w-full focus:outline-none focus:ring-2 focus:ring-[#1F3A93] focus:border-[#1F3A93] transition"
           >
             <option value="">-- בחר סטטוס --</option>
             {categoryOptions.map((cat, idx) => (
@@ -248,13 +246,13 @@ export default function AddChild() {
               placeholder="הקלדו סטטוס חדש"
               value={customCategory}
               onChange={(e) => setCustomCategory(e.target.value)}
-              className="border rounded p-2 mt-2 w-full"
+              className="border border-gray-300 rounded-md p-2 mt-2 w-full focus:outline-none focus:ring-2 focus:ring-[#1F3A93] focus:border-[#1F3A93] transition"
             />
           )}
         </div>
 
         <div className="space-y-4">
-          <span className="block text-sm text-neutral-700 mb-1">
+          <span className="block text-sm text-gray-700 mb-1">
             מספרי טלפון (לא חובה)
           </span>
 
@@ -270,7 +268,7 @@ export default function AddChild() {
                 onChange={(e) =>
                   handlePhoneChange(idx, "label", e.target.value)
                 }
-                className="border rounded p-2 w-full"
+                className="border border-gray-300 rounded-md p-2 w-full focus:outline-none focus:ring-2 focus:ring-[#1F3A93] focus:border-[#1F3A93] transition"
               />
               <input
                 type="tel"
@@ -279,7 +277,7 @@ export default function AddChild() {
                 onChange={(e) =>
                   handlePhoneChange(idx, "number", e.target.value)
                 }
-                className="border rounded p-2 w-full"
+                className="border border-gray-300 rounded-md p-2 w-full focus:outline-none focus:ring-2 focus:ring-[#1F3A93] focus:border-[#1F3A93] transition"
                 maxLength={12}
               />
               {phoneNumbers.length > 1 && (
@@ -297,7 +295,7 @@ export default function AddChild() {
           <button
             type="button"
             onClick={addPhoneField}
-            className="text-primary-600 hover:underline text-sm"
+            className="text-[#1F3A93] hover:text-[#162D6F] text-sm transition"
           >
             + הוסף מספר נוסף
           </button>
@@ -307,9 +305,9 @@ export default function AddChild() {
           type="submit"
           disabled={createChild.isLoading}
           className="
-            w-full px-4 py-2 rounded text-white transition
-            bg-blue-600 hover:bg-blue-700 disabled:opacity-50
-          "
+          w-full px-4 py-2 rounded-md text-white transition
+          bg-[#1F3A93] hover:bg-[#162D6F] disabled:opacity-50
+        "
         >
           {createChild.isLoading ? "שומר…" : "שמור שינויים"}
         </button>

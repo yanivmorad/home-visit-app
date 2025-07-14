@@ -1,98 +1,91 @@
+//src/components/ChildCard.jsx
 import React, { useMemo } from "react";
 import { Link } from "react-router-dom";
+import { formatDate } from "../utils/date";
+
+function getUrgencyStyles(status) {
+  switch (status) {
+    case "Urgent":
+      return {
+        tagText: "דחוף",
+        bg: "bg-red-50",
+        border: "border-red-200",
+        textColor: "text-red-600",
+        shadow: "shadow-[0_4px_12px_rgba(248,113,113,0.1)]",
+      };
+    case "Medium":
+      return {
+        tagText: "חשוב",
+        bg: "bg-[#D4AF37]/10",
+        border: "border-[#D4AF37]/30",
+        textColor: "text-[#D4AF37]",
+        shadow: "shadow-[0_4px_12px_rgba(212,175,55,0.1)]",
+      };
+    default:
+      return {
+        tagText: "רגיל",
+        bg: "bg-green-50",
+        border: "border-green-200",
+        textColor: "text-green-600",
+        shadow: "shadow-[0_4px_12px_rgba(34,197,94,0.1)]",
+      };
+  }
+}
+
+function ChildInfo({ child, formattedLastVisit, hasVisit }) {
+  return (
+    <div className="space-y-1">
+      <h2 className="text-xl font-semibold text-[#1F3A93]">{child.name}</h2>
+
+      <p className="text-base font-medium text-[#162D6F]">
+        {hasVisit
+          ? `פגישה אחרונה: ${formattedLastVisit}`
+          : "אין היסטוריית פגישות"}
+      </p>
+
+      {child.city && (
+        <p className="text-neutral-500 text-sm">עיר: {child.city}</p>
+      )}
+
+      {child.category && (
+        <p className="text-gray-400 text-xs mt-1">סטטוס: {child.category}</p>
+      )}
+    </div>
+  );
+}
 
 export default React.memo(function ChildCard({ child }) {
-  const formatDate = (iso) => {
-    if (!iso) return null;
-    const d = new Date(iso);
-    return d.toLocaleDateString("he-IL", {
-      day: "numeric",
-      month: "long",
-      year: "numeric",
-    });
-  };
-
+  const hasVisit = Boolean(child.lastVisit);
   const formattedLastVisit = useMemo(
     () => formatDate(child.lastVisit),
     [child.lastVisit]
   );
 
-  const getUrgencyTag = (status) => {
-    switch (status) {
-      case "Urgent":
-        return {
-          text: "דחוף",
-          bg: "from-red-100 to-red-200",
-          border: "border-red-300",
-        };
-      case "Medium":
-        return {
-          text: "חשוב",
-          bg: "from-yellow-100 to-yellow-200",
-          border: "border-yellow-300",
-        };
-      default:
-        return {
-          text: "רגיל",
-          bg: "from-green-100 to-green-200",
-          border: "border-green-300",
-        };
-    }
-  };
-  console.log(child);
-
-  const { text: tagText, bg, border, text } = getUrgencyTag(child.status);
-  const getShadowColor = (status) => {
-    switch (status) {
-      case "Urgent":
-        return "shadow-[0_4px_12px_rgba(248,113,113,0.25)]"; // אדום רך
-      case "Medium":
-        return "shadow-[0_4px_12px_rgba(251,191,36,0.25)]"; // צהוב רך
-      default:
-        return "shadow-[0_4px_12px_rgba(74,222,128,0.25)]"; // ירוק רך
-    }
-  };
-
-  const shadowClass = getShadowColor(child.status);
+  const { tagText, bg, border, textColor, shadow } = getUrgencyStyles(
+    child.status
+  );
 
   return (
     <Link
       to={`/child/${child.id}`}
       dir="rtl"
-      className={`block bg-white rounded-lg ring-1 ring-gray-200
-    transition-all duration-200 overflow-hidden text-right
-    ${shadowClass}
-    hover:shadow-lg hover:ring-2 hover:ring-primary-300`}
+      className={`
+        block bg-white rounded-2xl ring-1 ring-gray-200
+        transition-all duration-200 overflow-hidden text-right
+        ${shadow}
+        hover:shadow-lg hover:ring-2 hover:ring-[#1F3A93]/30
+      `}
     >
       <div className="p-5 flex justify-between items-start">
-        <div>
-          <h2 className="text-xl font-semibold text-primary-600">
-            {child.name}
-          </h2>
-
-          {formattedLastVisit && (
-            <p className="mt-2 text-base font-semibold text-primary-700">
-              פגישה אחרונה: {formattedLastVisit}
-            </p>
-          )}
-
-          {child.city && (
-            <p className="mt-1 text-neutral-500 text-s">עיר: {child.city}</p>
-          )}
-
-          {child.category && (
-            <p className="mt-1 text-neutral-500 text-s">
-              סטטוס: {child.category}
-            </p>
-          )}
-        </div>
-
+        <ChildInfo
+          child={child}
+          formattedLastVisit={formattedLastVisit}
+          hasVisit={hasVisit}
+        />
         <span
           className={`
-            inline-block px-3 py-1 rounded-full text-xs font-bold
-            bg-gradient-to-r ${bg}
-            border ${border}
-            ${text}
+            inline-block px-3 py-1 rounded-full text-xs font-medium
+            ${bg} ${border} ${textColor}
           `}
         >
           {tagText}

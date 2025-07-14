@@ -142,120 +142,116 @@ export default function EditChild() {
 
   return (
     <div dir="rtl" className="max-w-lg mx-auto p-6 space-y-6 text-right">
-      <Link to="/" className="text-primary-600 hover:underline">
+      <Link
+        to={`/child/${id}`}
+        className="inline-block text-sm font-medium text-gray-600 border-b border-gray-300 hover:border-blue-600 hover:text-blue-600 transition"
+      >
         ← חזרה
       </Link>
 
-      <h1 className="text-3xl font-bold text-primary-600">ערוך פרטי מטופל</h1>
+      <h1 className="text-3xl font-bold text-[#1F3A93]">ערוך פרטי מטופל</h1>
 
       <form onSubmit={handleSubmit} className="space-y-4">
         {/* מייצג משפטי */}
-        <div>
-          <label className="block text-sm text-neutral-700 mb-1">
-            מייצג משפטי <span className="text-red-500">*</span>
-          </label>
-          <div className="flex gap-4">
-            <label className="flex items-center gap-1">
-              <input
-                type="radio"
-                name="legalRep"
-                value="שלמה"
-                checked={legalRep === "שלמה"}
-                onChange={(e) => setLegalRep(e.target.value)}
-                required
-              />
-              שלמה
-            </label>
-            <label className="flex items-center gap-1">
-              <input
-                type="radio"
-                name="legalRep"
-                value="שלומית"
-                checked={legalRep === "שלומית"}
-                onChange={(e) => setLegalRep(e.target.value)}
-                required
-              />
-              שלומית
-            </label>
+        <div className="flex justify-center">
+          <div className="inline-flex rounded-md overflow-hidden border border-gray-300 bg-white shadow-sm">
+            {[
+              { label: 'עו"ד שלומית', value: "שלומית" },
+              { label: 'עו"ד שלמה', value: "שלמה" },
+            ].map(({ label, value }) => (
+              <label
+                key={value}
+                className={`px-5 py-2.5 text-base font-medium cursor-pointer transition-colors text-center ${
+                  legalRep === value
+                    ? "bg-[#1F3A93] text-white"
+                    : "text-gray-700 hover:bg-gray-100"
+                }`}
+              >
+                <input
+                  type="radio"
+                  name="legalRep"
+                  value={value}
+                  checked={legalRep === value}
+                  onChange={(e) => setLegalRep(e.target.value)}
+                  required
+                  className="sr-only"
+                />
+                {label}
+              </label>
+            ))}
           </div>
         </div>
 
-        {/* שם */}
         <div>
-          <label className="block text-sm text-neutral-700 mb-1">
+          <label className="block text-sm text-gray-700 mb-1">
             שם <span className="text-red-500">*</span>
           </label>
           <input
             type="text"
             value={name}
             onChange={(e) => setName(e.target.value)}
-            className="border rounded p-2 w-full"
+            className="border border-gray-300 rounded-md p-2 w-full focus:outline-none focus:ring-2 focus:ring-[#1F3A93] focus:border-[#1F3A93] transition"
             required
           />
         </div>
 
-        {/* עיר */}
         <div>
-          <label className="block text-sm text-neutral-700 mb-1">עיר</label>
+          <label className="block text-sm text-gray-700 mb-1">עיר</label>
           <input
             type="text"
             value={city}
             onChange={(e) => setCity(e.target.value)}
-            className="border rounded p-2 w-full"
+            className="border border-gray-300 rounded-md p-2 w-full focus:outline-none focus:ring-2 focus:ring-[#1F3A93] focus:border-[#1F3A93] transition"
           />
         </div>
 
-        {/* כתובת */}
         <div>
-          <label className="block text-sm text-neutral-700 mb-1">כתובת</label>
+          <label className="block text-sm text-gray-700 mb-1">כתובת</label>
           <input
             type="text"
             value={address}
             onChange={(e) => setAddress(e.target.value)}
-            className="border rounded p-2 w-full"
+            className="border border-gray-300 rounded-md p-2 w-full focus:outline-none focus:ring-2 focus:ring-[#1F3A93] focus:border-[#1F3A93] transition"
           />
         </div>
 
-        {/* תאריך לידה */}
         <div>
-          <label className="block text-sm text-neutral-700 mb-1">
-            תאריך לידה
-          </label>
+          <label className="block text-sm text-gray-700 mb-1">תאריך לידה</label>
           <input
             type="date"
             value={birthDate}
             onChange={(e) => setBirthDate(e.target.value)}
-            className="border rounded p-2 w-full"
+            className="border border-gray-300 rounded-md p-2 w-full focus:outline-none focus:ring-2 focus:ring-[#1F3A93] focus:border-[#1F3A93] transition"
           />
         </div>
 
-        {/* תעודת זהות */}
         <div>
-          <label className="block text-sm text-neutral-700 mb-1">
+          <label className="block text-sm text-gray-700 mb-1">
             מס׳ תעודת זהות
           </label>
           <input
             type="text"
             value={idNumber}
             onChange={(e) => setIdNumber(e.target.value)}
-            className="border rounded p-2 w-full"
+            className="border border-gray-300 rounded-md p-2 w-full focus:outline-none focus:ring-2 focus:ring-[#1F3A93] focus:border-[#1F3A93] transition"
           />
         </div>
 
-        {/* אזור */}
         <div>
-          <label className="block text-sm text-neutral-700 mb-1">אזור</label>
+          <label className="block text-sm text-gray-700 mb-1">אזור</label>
           <select
             value={selectedArea}
             onChange={(e) => setSelectedArea(e.target.value)}
-            className="border rounded p-2 w-full"
+            className="border border-gray-300 rounded-md p-2 w-full focus:outline-none focus:ring-2 focus:ring-[#1F3A93] focus:border-[#1F3A93] transition"
           >
             <option value="custom">הוסף אזור חדש...</option>
-            {parsedAreas.map((area, idx) => (
-              <option key={idx} value={area}>
-                {area}
-              </option>
-            ))}
+            {parsedAreas
+              .filter((area) => area !== "all")
+              .map((area, idx) => (
+                <option key={idx} value={area}>
+                  {area}
+                </option>
+              ))}
           </select>
           {selectedArea === "custom" && (
             <input
@@ -263,18 +259,17 @@ export default function EditChild() {
               value={customArea}
               onChange={(e) => setCustomArea(e.target.value)}
               placeholder="הזן שם אזור חדש"
-              className="border rounded p-2 w-full mt-2"
+              className="border border-gray-300 rounded-md p-2 mt-2 w-full focus:outline-none focus:ring-2 focus:ring-[#1F3A93] focus:border-[#1F3A93] transition"
             />
           )}
         </div>
 
-        {/* קטגוריה */}
         <div>
-          <label className="block text-sm text-neutral-700 mb-1">סטטוס</label>
+          <label className="block text-sm text-gray-700 mb-1">סטטוס</label>
           <select
             value={selectedCategory}
             onChange={(e) => setSelectedCategory(e.target.value)}
-            className="border rounded p-2 w-full"
+            className="border border-gray-300 rounded-md p-2 w-full focus:outline-none focus:ring-2 focus:ring-[#1F3A93] focus:border-[#1F3A93] transition"
           >
             <option value="custom">הוסף סטטוס חדש...</option>
             {categoryOptions.map((cat, idx) => (
@@ -289,13 +284,13 @@ export default function EditChild() {
               value={customCategory}
               onChange={(e) => setCustomCategory(e.target.value)}
               placeholder="הזן סטטוס חדש"
-              className="border rounded p-2 w-full mt-2"
+              className="border border-gray-300 rounded-md p-2 mt-2 w-full focus:outline-none focus:ring-2 focus:ring-[#1F3A93] focus:border-[#1F3A93] transition"
             />
           )}
         </div>
 
         <div className="space-y-4">
-          <span className="block text-sm text-neutral-700 mb-1">
+          <span className="block text-sm text-gray-700 mb-1">
             מספרי טלפון (לא חובה)
           </span>
 
@@ -311,7 +306,7 @@ export default function EditChild() {
                 onChange={(e) =>
                   handlePhoneChange(idx, "label", e.target.value)
                 }
-                className="border rounded p-2 w-full"
+                className="border border-gray-300 rounded-md p-2 w-full focus:outline-none focus:ring-2 focus:ring-[#1F3A93] focus:border-[#1F3A93] transition"
               />
               <input
                 type="tel"
@@ -320,7 +315,7 @@ export default function EditChild() {
                 onChange={(e) =>
                   handlePhoneChange(idx, "number", e.target.value)
                 }
-                className="border rounded p-2 w-full"
+                className="border border-gray-300 rounded-md p-2 w-full focus:outline-none focus:ring-2 focus:ring-[#1F3A93] focus:border-[#1F3A93] transition"
                 maxLength={12}
               />
               {phoneNumbers.length > 1 && (
@@ -338,7 +333,7 @@ export default function EditChild() {
           <button
             type="button"
             onClick={addPhoneField}
-            className="text-primary-600 hover:underline text-sm"
+            className="text-[#1F3A93] hover:text-[#162D6F] text-sm transition"
           >
             + הוסף מספר נוסף
           </button>
@@ -347,7 +342,7 @@ export default function EditChild() {
         <button
           type="submit"
           disabled={isUpdating}
-          className="w-full px-4 py-2 rounded text-white bg-blue-600 hover:bg-blue-700 disabled:opacity-50 transition"
+          className="w-full px-4 py-2 rounded-md text-white bg-[#1F3A93] hover:bg-[#162D6F] disabled:opacity-50 transition"
         >
           {isUpdating ? "שומר…" : "שמור שינויים"}
         </button>

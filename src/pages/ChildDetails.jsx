@@ -45,7 +45,10 @@ export default function ChildDetails() {
 
   return (
     <div dir="rtl" className="space-y-6 text-right">
-      <Link to="/" className="text-primary-600 hover:underline">
+      <Link
+        to="/"
+        className="inline-block text-sm font-medium text-gray-600 border-b border-gray-300 hover:border-blue-600 hover:text-blue-600 transition"
+      >
         ← חזרה
       </Link>
 
