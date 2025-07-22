@@ -60,8 +60,12 @@ export default function ChildInfo({ child, onDelete }) {
             )}
           </h2>
 
+          {child.idNumber && (
+            <p className="text-gray-600 text-sm">ת"ז: {child.idNumber}</p>
+          )}
+
           {child.category && (
-            <p className="text-gray-400 text-xs">סטטוס : {child.category}</p>
+            <p className="text-gray-500 text-xs">סטטוס : {child.category}</p>
           )}
 
           <div className="flex items-center text-gray-500 text-sm">
@@ -74,7 +78,7 @@ export default function ChildInfo({ child, onDelete }) {
               <path d="M10 2a6 6 0 00-6 6c0 4.5 6 10 6 10s6-5.5 6-10a6 6 0 00-6-6z" />
             </svg>
             <p>
-              {child.address}, {child.city}
+              {child.address} {child.city}
             </p>
           </div>
         </div>

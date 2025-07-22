@@ -1,29 +1,19 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { useChild, useUpdateChild } from "../hooks/useChildren";
 
-export default function EditChild() {
+export default function EditChild({ areas = [], categories = [] }) {
   const { id } = useParams();
   const navigate = useNavigate();
 
   const { data: child, isLoading, error } = useChild(id);
   const { mutate: updateChild, isLoading: isUpdating } = useUpdateChild();
 
-  // parse areas only once
-  const parsedAreas = useMemo(() => {
-    try {
-      const stored = localStorage.getItem("areas");
-      return stored ? JSON.parse(stored).filter((a) => a) : [];
-    } catch {
-      return [];
-    }
-  }, []);
+  // // parse areas only once
+  const parsedAreas = areas;
 
   // fixed list of categories
-  const categoryOptions = useMemo(
-    () => ["אומנה", "אימוץ", "פנימיה", "מרכז חירום", "צו ביניים", "ניזקקות"],
-    []
-  );
+  const categoryOptions = categories;
 
   // form state
   const [name, setName] = useState("");
@@ -244,7 +234,7 @@ export default function EditChild() {
             onChange={(e) => setSelectedArea(e.target.value)}
             className="border border-gray-300 rounded-md p-2 w-full focus:outline-none focus:ring-2 focus:ring-[#1F3A93] focus:border-[#1F3A93] transition"
           >
-            <option value="custom">הוסף אזור חדש...</option>
+            <option value="">-- בחר אזור --</option>
             {parsedAreas
               .filter((area) => area !== "all")
               .map((area, idx) => (
@@ -252,6 +242,7 @@ export default function EditChild() {
                   {area}
                 </option>
               ))}
+            <option value="custom">הוסף אזור חדש...</option>
           </select>
           {selectedArea === "custom" && (
             <input
@@ -271,12 +262,13 @@ export default function EditChild() {
             onChange={(e) => setSelectedCategory(e.target.value)}
             className="border border-gray-300 rounded-md p-2 w-full focus:outline-none focus:ring-2 focus:ring-[#1F3A93] focus:border-[#1F3A93] transition"
           >
-            <option value="custom">הוסף סטטוס חדש...</option>
+            <option value="">-- בחר סטטוס --</option>
             {categoryOptions.map((cat, idx) => (
               <option key={idx} value={cat}>
                 {cat}
               </option>
             ))}
+            <option value="custom">הוסף סטטוס חדש...</option>
           </select>
           {selectedCategory === "custom" && (
             <input

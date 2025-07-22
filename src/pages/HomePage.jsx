@@ -2,13 +2,17 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import ChildCard from "../components/ChildCard";
-import { useChildren } from "../hooks/useChildren";
 import { useFilteredChildren } from "../hooks/useFilteredChildren";
 import ChildrenFiltersForm from "../components/ChildrenFiltersForm";
 import LegalRepSelector from "../components/LegalRepSelector";
 import ChildrenSkeletonGrid from "../components/ChildrenSkeletonGrid";
 
-export default function HomePage() {
+export default function HomePage({
+  allChildren = [],
+  isLoading,
+  error,
+  areas = [],
+}) {
   const [legalRepFilter, setLegalRepFilter] = useState(() => {
     try {
       return localStorage.getItem("legalRepFilter") || "";
@@ -21,8 +25,7 @@ export default function HomePage() {
   const [cityTerm, setCityTerm] = useState("");
   const [areaFilter, setAreaFilter] = useState("all");
 
-  const { data: allChildren = [], isLoading, error } = useChildren();
-  const { areas, filtered, displayedChildren } = useFilteredChildren({
+  const { filtered, displayedChildren } = useFilteredChildren({
     allChildren,
     legalRepFilter,
     nameTerm,

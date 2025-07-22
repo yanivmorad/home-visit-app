@@ -1,9 +1,9 @@
 // homeVisit/src/pages/AddChild.jsx
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useCreateChild } from "../hooks/useChildren";
 
-export default function AddChild() {
+export default function AddChild({ areas = [], categories = [] }) {
   const navigate = useNavigate();
   const createChild = useCreateChild();
 
@@ -20,26 +20,9 @@ export default function AddChild() {
   const [city, setCity] = useState("");
   const [address, setAddress] = useState("");
   const [phoneNumbers, setPhoneNumbers] = useState([{ label: "", number: "" }]);
-  const [areas, setAreas] = useState([]);
 
   // חדש: נציג משפטי
   const [legalRep, setLegalRep] = useState("");
-
-  // קבועות של קטגוריות
-  const categoryOptions = useMemo(
-    () => ["אומנה", "אימוץ", "פנימיה", "מרכז חירום", "צו ביניים", "ניזקקות"],
-    []
-  );
-
-  // טוען את האזורים מ־localStorage
-  useEffect(() => {
-    try {
-      const stored = localStorage.getItem("areas");
-      if (stored) setAreas(JSON.parse(stored).filter((a) => a));
-    } catch (e) {
-      console.warn("לא הצליח לטעון אזורים מ־localStorage", e);
-    }
-  }, []);
 
   // פורמט מספר טלפון: לאחר 3 ספרות מוסיף מקף
   const formatPhone = (value = "") => {
@@ -211,7 +194,6 @@ export default function AddChild() {
                   {a}
                 </option>
               ))}
-
             <option value="custom">אזור חדש...</option>
           </select>
           {selectedArea === "custom" && (
@@ -233,7 +215,7 @@ export default function AddChild() {
             className="border border-gray-300 rounded-md p-2 w-full focus:outline-none focus:ring-2 focus:ring-[#1F3A93] focus:border-[#1F3A93] transition"
           >
             <option value="">-- בחר סטטוס --</option>
-            {categoryOptions.map((cat, idx) => (
+            {categories.map((cat, idx) => (
               <option key={idx} value={cat}>
                 {cat}
               </option>
