@@ -84,11 +84,11 @@ export default function App() {
     );
   }
 
-  // טיפול במצב טעינה
-  if (isLoading) {
-    console.log("useChildren is loading");
-    return <div>Loading...</div>;
-  }
+  // // טיפול במצב טעינה
+  // if (isLoading) {
+  //   console.log("useChildren is loading");
+  //   return <div>Loading...</div>;
+  // }
 
   console.log("Rendering Routes with allChildren:", allChildren);
 

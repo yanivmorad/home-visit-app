@@ -5,6 +5,8 @@ import { useMeetings, useAddMeeting } from "../hooks/useMeetings";
 import ChildInfo from "../components/ChildInfo";
 import MeetingSection from "../components/MeetingSection";
 import { useChild } from "../hooks/useChildren";
+import ChildrenSkeletonGrid from "../components/ChildrenSkeletonGrid";
+import ChildDetailsSkeleton from "../components/ChildSkeleton";
 
 export default function ChildDetails() {
   const { id } = useParams();
@@ -40,7 +42,7 @@ export default function ChildDetails() {
 
   const addMeeting = useAddMeeting(id);
 
-  if (loadingChild) return <p>טוען פרטי ילד…</p>;
+  if (loadingChild) return <ChildDetailsSkeleton />;
   if (errorChild) return <p>שגיאה בטעינת פרטי ילד</p>;
 
   return (
