@@ -6,6 +6,7 @@ import { useFilteredChildren } from "../hooks/useFilteredChildren";
 import ChildrenFiltersForm from "../components/ChildrenFiltersForm";
 import LegalRepSelector from "../components/LegalRepSelector";
 import ChildrenSkeletonGrid from "../components/ChildrenSkeletonGrid";
+import { getAgeFromDate } from "../utils/date";
 
 // Constants for repeated class names
 const ADD_CHILD_BUTTON_CLASSES = `
@@ -83,7 +84,15 @@ export default function HomePage({
     cityTerm,
     areaFilter,
   });
-
+  const sortedDisplayedChildren = useMemo(() => {
+    return [...displayedChildren].sort((a, b) => {
+      const ageA = getAgeFromDate(a.birthDate); // או a.age אם כבר קיים
+      const ageB = getAgeFromDate(b.birthDate);
+      const aIsAdult = ageA >= 18 ? 1 : 0;
+      const bIsAdult = ageB >= 18 ? 1 : 0;
+      return bIsAdult - aIsAdult; // בגירים קודמים
+    });
+  }, [displayedChildren]);
   // Handle loading and error states
   if (isLoading) return <ChildrenSkeletonGrid />;
   if (error)
@@ -115,7 +124,7 @@ export default function HomePage({
       {legalRepFilter && (
         <ChildrenList
           filtered={filtered}
-          displayedChildren={displayedChildren}
+          displayedChildren={sortedDisplayedChildren}
           nameTerm={nameTerm}
           setNameTerm={setNameTerm}
           cityTerm={cityTerm}

@@ -1,7 +1,7 @@
 //src/components/ChildCard.jsx
 import React, { useMemo } from "react";
 import { Link } from "react-router-dom";
-import { formatDate } from "../utils/date";
+import { formatDate, getAgeFromDate } from "../utils/date";
 
 function getUrgencyStyles(status) {
   switch (status) {
@@ -11,7 +11,7 @@ function getUrgencyStyles(status) {
         bg: "bg-red-50",
         border: "border-red-200",
         textColor: "text-red-600",
-        shadow: "shadow-[0_4px_12px_rgba(248,113,113,0.1)]",
+        shadow: "shadow-[0_4px_12px_rgba(248,113,113,0.2)]",
       };
     case "Medium":
       return {
@@ -19,7 +19,7 @@ function getUrgencyStyles(status) {
         bg: "bg-[#D4AF37]/10",
         border: "border-[#D4AF37]/30",
         textColor: "text-[#D4AF37]",
-        shadow: "shadow-[0_4px_12px_rgba(212,175,55,0.1)]",
+        shadow: "shadow-[0_4px_12px_rgba(212,175,55,0.2)]",
       };
     default:
       return {
@@ -60,6 +60,7 @@ export default React.memo(function ChildCard({ child }) {
     () => formatDate(child.lastVisit),
     [child.lastVisit]
   );
+  const age = useMemo(() => getAgeFromDate(child.birthDate), [child.birthDate]);
 
   const { tagText, bg, border, textColor, shadow } = getUrgencyStyles(
     child.status
@@ -82,14 +83,24 @@ export default React.memo(function ChildCard({ child }) {
           formattedLastVisit={formattedLastVisit}
           hasVisit={hasVisit}
         />
-        <span
-          className={`
-            inline-block px-3 py-1 rounded-full text-xs font-medium
-            ${bg} ${border} ${textColor}
-          `}
-        >
-          {tagText}
-        </span>
+        <div className="flex flex-col items-end space-y-2">
+          <span
+            className={`
+      inline-block px-3 py-1 rounded-full text-xs font-medium
+      ${bg} ${border} ${textColor}
+    `}
+          >
+            {tagText}
+          </span>
+          {age >= 18 && (
+            <span
+              className="inline-block px-3 py-1 rounded-full text-xs font-medium
+  bg-gray-100 border border-gray-300 text-gray-700"
+            >
+              בגיר
+            </span>
+          )}
+        </div>
       </div>
     </Link>
   );
